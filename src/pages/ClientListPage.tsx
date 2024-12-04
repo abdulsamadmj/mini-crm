@@ -4,12 +4,10 @@ import {
   flexRender,
   getCoreRowModel,
   useReactTable,
-  //   getSortedRowModel,
-  //   SortingState,
-  //   getFilteredRowModel,
-  //   getPaginationRowModel,
+  getSortedRowModel,
+  SortingState,
+  getFilteredRowModel,
 } from "@tanstack/react-table";
-// import { useClients } from "../hooks/useClients";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -30,28 +28,40 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Client, fetchClients } from "@/api/clients";
-// import { ModeToggle } from "@/components/mode-toggle";
 import { useQuery } from "@tanstack/react-query";
 import { ClientTableLoading } from "@/components/table-skeleton";
 import { ModeToggle } from "@/components/mode-toggle";
 
-// Wrapper component to handle suspense and data fetching
-const ClientTableContent: React.FC<{
-  page: number;
-  pageSize: number;
-  searchTerm: string;
-}> = ({ page, pageSize, searchTerm }) => {
+const ClientListPage: React.FC = () => {
+  // State management
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [inputValue, setInputValue] = useState("");
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [isPending, startTransition] = useTransition();
+
+  // Handle search submission
+  const handleSearch = () => {
+    startTransition(() => {
+      setSearchTerm(inputValue);
+      // Reset to first page when searching
+      setPage(1);
+    });
+  };
+
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["clients", page, pageSize, searchTerm],
+    queryKey: ["clients", page, pageSize, searchTerm, sorting],
     queryFn: () => fetchClients(page, pageSize, searchTerm),
-    //   keepPreviousData: true,
+    // Note: Actual sorting would typically be handled server-side
   });
 
-  // Define table columns
+  // Define table columns with sorting
   const columns: ColumnDef<Client>[] = [
     {
       accessorKey: "picture",
       header: "Avatar",
+      enableSorting: false,
       cell: ({ row }) => (
         <Avatar>
           <AvatarImage
@@ -97,41 +107,14 @@ const ClientTableContent: React.FC<{
   const table = useReactTable({
     data: data?.clients || [],
     columns,
+    state: {
+      sorting,
+    },
+    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
   });
-
-  if (isLoading) return <ClientTableLoading />;
-  if (isError) return <div>Error fetching clients</div>;
-
-  return (
-    <TableBody>
-      {table.getRowModel().rows.map((row) => (
-        <TableRow key={row.id}>
-          {row.getVisibleCells().map((cell) => (
-            <TableCell key={cell.id}>
-              {flexRender(cell.column.columnDef.cell, cell.getContext())}
-            </TableCell>
-          ))}
-        </TableRow>
-      ))}
-    </TableBody>
-  );
-};
-
-const ClientListPage: React.FC = () => {
-  // State management
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [inputValue, setInputValue] = useState("");
-  const [isPending, startTransition] = useTransition();
-
-  // Handle search submission
-  const handleSearch = () => {
-    startTransition(() => {
-      setSearchTerm(inputValue);
-    });
-  };
 
   return (
     <div className="w-full p-4 space-y-4">
@@ -161,23 +144,62 @@ const ClientListPage: React.FC = () => {
       </div>
 
       {/* Client Table */}
-      <Table>
+      <Table style={{height: "calc(100vh - 200px)"}}>
         <TableHeader>
-          <TableRow>
-            <TableHead>Avatar</TableHead>
-            <TableHead>First Name</TableHead>
-            <TableHead>Last Name</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Status</TableHead>
-          </TableRow>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <TableHead key={header.id}>
+                  {header.isPlaceholder ? null : (
+                    <>
+                      <div
+                        {...{
+                          className: header.column.getCanSort()
+                            ? "cursor-pointer select-none"
+                            : "",
+                          onClick: header.column.getToggleSortingHandler(),
+                        }}
+                      >
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                        {{
+                          asc: " 🔼",
+                          desc: " 🔽",
+                        }[header.column.getIsSorted() as string] ?? null}
+                      </div>
+                    </>
+                  )}
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
         </TableHeader>
 
         <Suspense fallback={<ClientTableLoading />}>
-          <ClientTableContent
-            page={page}
-            pageSize={pageSize}
-            searchTerm={searchTerm}
-          />
+          <TableBody>
+            {isLoading ? (
+              <ClientTableLoading />
+            ) : isError ? (
+              <div>Error fetching clients</div>
+            ) : (
+              <>
+                {table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </>
+            )}
+          </TableBody>
         </Suspense>
       </Table>
 

@@ -9,7 +9,7 @@ export const TableSkeleton: React.FC<{ columnCount: number }> = ({
     <TableRow>
       {Array.from({ length: columnCount }).map((_, index) => (
         <TableCell key={index}>
-          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-8 w-full p-5" />
         </TableCell>
       ))}
     </TableRow>
