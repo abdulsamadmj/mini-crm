@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import ClientListPage from "./pages/ClientListPage";
 import { useEffect } from "react";
 import { useClientStore } from "./store/clientStore";
+import { Toaster } from "./components/ui/toaster";
 
 // Create a QueryClient instance
 const queryClient = new QueryClient({
@@ -48,6 +49,7 @@ const App: React.FC = () => {
           <Route path="/" element={<ClientListPage />} />
         </Routes>
       </Router>
+      <Toaster />
       {/* DevTools for easier debugging */}
       {/* <ReactQueryDevtools initialIsOpen={false} /> */}
     </QueryClientProvider>

@@ -27,9 +27,6 @@ export const fetchClients = async (
   total: number;
 }> => {
   try {
-    // Simulate potential network delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
     const response = await axios.get("https://randomuser.me/api/", {
       params: {
         page,

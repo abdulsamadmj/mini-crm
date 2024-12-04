@@ -46,6 +46,7 @@ import ClientProfile from "@/components/client-profile";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { rankItem } from "@tanstack/match-sorter-utils";
+import { useToast } from "@/hooks/use-toast";
 
 const ClientListPage: React.FC = () => {
   // State management
@@ -54,6 +55,7 @@ const ClientListPage: React.FC = () => {
   const [globalFilter, setGlobalFilter] = useState("");
   const [inputValue, setInputValue] = useState("");
   const [sorting, setSorting] = useState<SortingState>([]);
+  const { toast } = useToast();
 
   useEffect(() => {
     setGlobalFilter(inputValue);
@@ -145,6 +147,16 @@ const ClientListPage: React.FC = () => {
     getFilteredRowModel: getFilteredRowModel(),
   });
 
+  useEffect(() => {
+    if (isError) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch clients",
+        variant: "destructive",
+      });
+    }
+  }, [isError, toast]);
+
   return (
     <div className="w-full p-4 space-y-4">
       <Dialog
@@ -235,7 +247,7 @@ const ClientListPage: React.FC = () => {
               <>
                 {table.getRowModel().rows.map((row) => (
                   <TableRow
-                    key={row.id}
+                    key={"row" + row.id}
                     className="hover:cursor-pointer"
                     onClick={() =>
                       setClientDialog({
@@ -245,7 +257,7 @@ const ClientListPage: React.FC = () => {
                     }
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
+                      <TableCell key={"cell" + cell.id}>
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext()
