@@ -32,6 +32,16 @@ import { Client, fetchClients } from "@/api/clients";
 import { useQuery } from "@tanstack/react-query";
 import { ClientTableLoading } from "@/components/table-skeleton";
 import { ModeToggle } from "@/components/mode-toggle";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+import { useClientStore } from "@/store/clientStore";
+import ClientProfile from "@/components/client-profile";
 
 const ClientListPage: React.FC = () => {
   // State management
@@ -41,6 +51,8 @@ const ClientListPage: React.FC = () => {
   const [inputValue, setInputValue] = useState("");
   const [sorting, setSorting] = useState<SortingState>([]);
   const [isPending, startTransition] = useTransition();
+
+  const { clientDialog, setClientDialog } = useClientStore();
 
   // Handle search submission
   const handleSearch = () => {
@@ -120,6 +132,24 @@ const ClientListPage: React.FC = () => {
 
   return (
     <div className="w-full p-4 space-y-4">
+      <Dialog
+        open={clientDialog.open}
+        onOpenChange={(open) => setClientDialog({ ...clientDialog, open })}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Client Profile</DialogTitle>
+            <DialogDescription>
+              {clientDialog.client ? (
+                <>
+                  <ClientProfile {...clientDialog.client} />
+                </>
+              ) : null}
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+
       <div className="flex justify-between">
         <div className="flex items-center space-x-2">
           <Input
@@ -193,7 +223,16 @@ const ClientListPage: React.FC = () => {
             ) : (
               <>
                 {table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id}>
+                  <TableRow
+                    key={row.id}
+                    className="hover:cursor-pointer"
+                    onClick={() =>
+                      setClientDialog({
+                        client: row.original,
+                        open: true,
+                      })
+                    }
+                  >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>
                         {flexRender(
