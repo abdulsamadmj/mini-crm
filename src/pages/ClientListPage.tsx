@@ -47,6 +47,7 @@ import { ArrowDown, ArrowUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { rankItem } from "@tanstack/match-sorter-utils";
 import { useToast } from "@/hooks/use-toast";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const ClientListPage: React.FC = () => {
   // State management
@@ -192,87 +193,88 @@ const ClientListPage: React.FC = () => {
       </div>
 
       {/* Client Table */}
-      <Table className="relative w-full max-h-96 h-96 overflow-y-scroll">
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <>
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={"header" + header.id}>
-                    {header.isPlaceholder ? null : (
-                      <div
-                        className={cn(
-                          header.column.getCanSort()
-                            ? "cursor-pointer select-none"
-                            : "",
-                          "flex items-center"
-                        )}
-                        onClick={header.column.getToggleSortingHandler()}
-                      >
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                        {{
-                          asc: <ArrowUp height={15} />,
-                          desc: <ArrowDown height={15} />,
-                        }[header.column.getIsSorted() as string] ?? null}
-                      </div>
-                    )}
-                  </TableHead>
-                ))}
-              </TableRow>
-              <TableRow>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={"filter" + header.id}>
-                    {header.column.getCanFilter() ? (
-                      <div>
-                        <Filter column={header.column} />
-                      </div>
-                    ) : null}
-                  </TableHead>
-                ))}
-              </TableRow>
-            </>
-          ))}
-        </TableHeader>
-
-        <Suspense fallback={<ClientTableLoading />}>
-          <TableBody>
-            {isLoading ? (
-              <ClientTableLoading />
-            ) : isError ? (
-              <div className="flex w-full justify-center text-red-500">
-                Error fetching clients
-              </div>
-            ) : (
+      <ScrollArea className="relative w-full h-[80vh]">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
               <>
-                {table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={"row" + row.id}
-                    className="hover:cursor-pointer"
-                    onClick={() =>
-                      setClientDialog({
-                        client: row.original,
-                        open: true,
-                      })
-                    }
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={"cell" + cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={"header" + header.id}>
+                      {header.isPlaceholder ? null : (
+                        <div
+                          className={cn(
+                            header.column.getCanSort()
+                              ? "cursor-pointer select-none"
+                              : "",
+                            "flex items-center"
+                          )}
+                          onClick={header.column.getToggleSortingHandler()}
+                        >
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                          {{
+                            asc: <ArrowUp height={15} />,
+                            desc: <ArrowDown height={15} />,
+                          }[header.column.getIsSorted() as string] ?? null}
+                        </div>
+                      )}
+                    </TableHead>
+                  ))}
+                </TableRow>
+                <TableRow>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={"filter" + header.id}>
+                      {header.column.getCanFilter() ? (
+                        <div>
+                          <Filter column={header.column} />
+                        </div>
+                      ) : null}
+                    </TableHead>
+                  ))}
+                </TableRow>
               </>
-            )}
-          </TableBody>
-        </Suspense>
-      </Table>
+            ))}
+          </TableHeader>
+          <Suspense fallback={<ClientTableLoading />}>
+            <TableBody>
+              {isLoading ? (
+                <ClientTableLoading />
+              ) : isError ? (
+                <div className="flex w-full justify-center text-red-500">
+                  Error fetching clients
+                </div>
+              ) : (
+                <>
+                  {table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={"row" + row.id}
+                      className="hover:cursor-pointer"
+                      onClick={() =>
+                        setClientDialog({
+                          client: row.original,
+                          open: true,
+                        })
+                      }
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={"cell" + cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </>
+              )}
+            </TableBody>
+          </Suspense>
+        </Table>
+      </ScrollArea>
 
       {/* Pagination Controls */}
       <div className="sticky bottom-2 flex items-center justify-between space-x-2 bg-primary-foreground p-2 px-4 rounded-sm">
