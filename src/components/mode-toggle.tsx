@@ -10,7 +10,7 @@ import {
 import { useClientStore } from "@/store/clientStore";
 
 export function ModeToggle() {
-  const { switchTheme } = useClientStore();
+  const { theme, switchTheme } = useClientStore();
 
   return (
     <DropdownMenu>
@@ -22,13 +22,22 @@ export function ModeToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => switchTheme("light")}>
+        <DropdownMenuItem
+          disabled={theme === "light"}
+          onClick={() => switchTheme("light")}
+        >
           Light
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => switchTheme("dark")}>
+        <DropdownMenuItem
+          disabled={theme === "dark"}
+          onClick={() => switchTheme("dark")}
+        >
           Dark
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => switchTheme("system")}>
+        <DropdownMenuItem
+          disabled={theme === "system"}
+          onClick={() => switchTheme("system")}
+        >
           System
         </DropdownMenuItem>
       </DropdownMenuContent>

@@ -12,7 +12,7 @@ interface ClientState {
 }
 
 export const useClientStore = create<ClientState>((set) => ({
-  theme: "system", // Default mode is system
+  theme: (localStorage.getItem("theme") as ClientState["theme"]) ?? "system", // Default mode is system
   switchTheme: (theme) => set({ theme }), // Update the theme
   clientDialog: {
     open: false,

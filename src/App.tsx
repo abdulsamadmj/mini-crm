@@ -20,6 +20,7 @@ const queryClient = new QueryClient({
 
 const App: React.FC = () => {
   const { theme } = useClientStore();
+
   useEffect(() => {
     const root = window.document.documentElement;
 
@@ -36,6 +37,8 @@ const App: React.FC = () => {
     }
 
     root.classList.add(theme);
+
+    localStorage.setItem("theme", theme);
   }, [theme]);
 
   return (

@@ -42,6 +42,8 @@ import {
 
 import { useClientStore } from "@/store/clientStore";
 import ClientProfile from "@/components/client-profile";
+import { ArrowDown, ArrowUp } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const ClientListPage: React.FC = () => {
   // State management
@@ -151,6 +153,7 @@ const ClientListPage: React.FC = () => {
       </Dialog>
 
       <div className="flex justify-between">
+        <ModeToggle />
         <div className="flex items-center space-x-2">
           <Input
             placeholder="Search clients..."
@@ -172,45 +175,51 @@ const ClientListPage: React.FC = () => {
             Search
           </Button>
         </div>
-        <ModeToggle />
       </div>
 
       {/* Client Table */}
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <TableHead key={header.id}>
-                  {header.isPlaceholder ? null : (
-                    <>
+            <>
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={"header" + header.id}>
+                    {header.isPlaceholder ? null : (
                       <div
-                        {...{
-                          className: header.column.getCanSort()
+                        className={cn(
+                          header.column.getCanSort()
                             ? "cursor-pointer select-none"
                             : "",
-                          onClick: header.column.getToggleSortingHandler(),
-                        }}
+                          "flex items-center"
+                        )}
+                        onClick={header.column.getToggleSortingHandler()}
                       >
                         {flexRender(
                           header.column.columnDef.header,
                           header.getContext()
                         )}
                         {{
-                          asc: " 🔼",
-                          desc: " 🔽",
+                          asc: <ArrowUp height={15} />,
+                          desc: <ArrowDown height={15} />,
                         }[header.column.getIsSorted() as string] ?? null}
                       </div>
-                      {header.column.getCanFilter() ? (
-                        <div>
-                          <Filter column={header.column} />
-                        </div>
-                      ) : null}
-                    </>
-                  )}
-                </TableHead>
-              ))}
-            </TableRow>
+                    )}
+                  </TableHead>
+                ))}
+              </TableRow>
+              <TableRow>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={"filter" + header.id}>
+                    {header.column.getCanFilter() ? (
+                      <div>
+                        <Filter column={header.column} />
+                      </div>
+                    ) : null}
+                  </TableHead>
+                ))}
+              </TableRow>
+            </>
           ))}
         </TableHeader>
 
@@ -303,7 +312,7 @@ function Filter({ column }: { column: Column<any, unknown> }) {
       value={(columnFilterValue ?? "") as string}
       onChange={(value) => column.setFilterValue(value)}
       placeholder={`Search...`}
-      className="w-36 border shadow rounded"
+      className="w-full rounded-none"
     />
   );
 }

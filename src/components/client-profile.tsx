@@ -1,13 +1,13 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { Badge } from "./ui/badge";
 import { Client } from "@/api/clients";
-import { ScrollArea } from "@radix-ui/react-scroll-area";
+import { ScrollArea } from "./ui/scroll-area";
 
 export default function ClientProfile(user: Client) {
   return (
     <ScrollArea>
       <div className="container mx-auto p-4">
-        <div className="max-w-2xl mx-auto flex flex-col gap-4">
+        <div className="max-w-2xl mx-auto flex flex-col gap-4 text-primary">
           <div className="flex flex-row items-center gap-4">
             <Avatar className="w-20 h-20">
               <AvatarImage
@@ -19,11 +19,12 @@ export default function ClientProfile(user: Client) {
                 {user.name.last[0]}
               </AvatarFallback>
             </Avatar>
-            <div>
+            <div className="flex flex-col gap-2">
               <p className="text-2xl">
                 {user.name.first} {user.name.last}
               </p>
               <Badge
+                className="w-fit"
                 variant={user.status === "active" ? "default" : "destructive"}
               >
                 {user.status}
