@@ -64,7 +64,7 @@ const ClientListPage: React.FC = () => {
   const { clientDialog, setClientDialog } = useClientStore();
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["clients", page, pageSize, sorting],
+    queryKey: ["clients", page, pageSize, sorting, globalFilter],
     queryFn: () => fetchClients(page, pageSize),
   });
 
@@ -158,7 +158,7 @@ const ClientListPage: React.FC = () => {
   }, [isError, toast]);
 
   return (
-    <div className="w-full p-4 space-y-4">
+    <div className="w-full p-4 pb-0 space-y-4">
       <Dialog
         open={clientDialog.open}
         onOpenChange={(open) => setClientDialog({ ...clientDialog, open })}
@@ -192,7 +192,7 @@ const ClientListPage: React.FC = () => {
       </div>
 
       {/* Client Table */}
-      <Table>
+      <Table className="relative w-full max-h-96 h-96 overflow-y-scroll">
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <>
@@ -242,7 +242,9 @@ const ClientListPage: React.FC = () => {
             {isLoading ? (
               <ClientTableLoading />
             ) : isError ? (
-              <div>Error fetching clients</div>
+              <div className="flex w-full justify-center text-red-500">
+                Error fetching clients
+              </div>
             ) : (
               <>
                 {table.getRowModel().rows.map((row) => (
@@ -273,7 +275,7 @@ const ClientListPage: React.FC = () => {
       </Table>
 
       {/* Pagination Controls */}
-      <div className="flex items-center justify-between space-x-2">
+      <div className="sticky bottom-2 flex items-center justify-between space-x-2 bg-primary-foreground p-2 px-4 rounded-sm">
         <div className="flex items-center space-x-2">
           <p>Rows per page:</p>
           <Select

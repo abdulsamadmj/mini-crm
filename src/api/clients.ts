@@ -27,6 +27,10 @@ export const fetchClients = async (
   total: number;
 }> => {
   try {
+    if (!navigator.onLine) {
+      throw new Error("Offline");
+    }
+    
     const response = await axios.get("https://randomuser.me/api/", {
       params: {
         page,
