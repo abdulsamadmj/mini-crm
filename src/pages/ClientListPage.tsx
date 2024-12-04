@@ -1,4 +1,4 @@
-import React, { Suspense, useState, useTransition } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import {
   ColumnDef,
   flexRender,
@@ -8,6 +8,7 @@ import {
   SortingState,
   getFilteredRowModel,
   Column,
+  FilterFn,
 } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,32 +45,38 @@ import { useClientStore } from "@/store/clientStore";
 import ClientProfile from "@/components/client-profile";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { rankItem } from "@tanstack/match-sorter-utils";
 
 const ClientListPage: React.FC = () => {
   // State management
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [globalFilter, setGlobalFilter] = useState("");
   const [inputValue, setInputValue] = useState("");
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    setGlobalFilter(inputValue);
+  }, [inputValue]);
 
   const { clientDialog, setClientDialog } = useClientStore();
 
-  // Handle search submission
-  const handleSearch = () => {
-    startTransition(() => {
-      setSearchTerm(inputValue);
-      // Reset to first page when searching
-      setPage(1);
-    });
-  };
-
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["clients", page, pageSize, searchTerm, sorting],
-    queryFn: () => fetchClients(page, pageSize, searchTerm),
-    // Note: Actual sorting would typically be handled server-side
+    queryKey: ["clients", page, pageSize, sorting],
+    queryFn: () => fetchClients(page, pageSize),
   });
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
+    // Rank the item
+    const itemRank = rankItem(row.getValue(columnId), value);
+
+    // Store the itemRank info
+    addMeta({ itemRank });
+
+    // Return if the item should be filtered in/out
+    return itemRank.passed;
+  };
 
   // Define table columns with sorting
   const columns: ColumnDef<Client>[] = [
@@ -125,8 +132,14 @@ const ClientListPage: React.FC = () => {
     columns,
     state: {
       sorting,
+      globalFilter,
     },
+    filterFns: {
+      fuzzy: fuzzyFilter,
+    },
+    globalFilterFn: "auto",
     onSortingChange: setSorting,
+    onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -156,24 +169,13 @@ const ClientListPage: React.FC = () => {
         <ModeToggle />
         <div className="flex items-center space-x-2">
           <Input
-            placeholder="Search clients..."
+            placeholder="Global Search..."
             value={inputValue}
             onChange={(e) => {
               setInputValue(e.target.value);
-              if (e.target.value === "") {
-                handleSearch();
-              }
             }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                handleSearch();
-              }
-            }}
-            className="max-w-md"
+            className="w-52"
           />
-          <Button onClick={handleSearch} disabled={isPending}>
-            Search
-          </Button>
         </div>
       </div>
 

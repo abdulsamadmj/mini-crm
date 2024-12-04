@@ -21,8 +21,7 @@ export interface Client {
 
 export const fetchClients = async (
   page: number = 1,
-  pageSize: number = 10,
-  searchTerm: string = ""
+  pageSize: number = 10
 ): Promise<{
   clients: Client[];
   total: number;
@@ -60,25 +59,8 @@ export const fetchClients = async (
       },
     }));
 
-    // More comprehensive global search
-    const filteredClients = searchTerm
-      ? clients.filter((client) =>
-          Object.values(client).some(
-            (value) =>
-              (typeof value === "string" &&
-                value.toLowerCase().includes(searchTerm.toLowerCase())) ||
-              (typeof value === "object" &&
-                Object.values(value).some(
-                  (nestedValue) =>
-                    typeof nestedValue === "string" &&
-                    nestedValue.toLowerCase().includes(searchTerm.toLowerCase())
-                ))
-          )
-        )
-      : clients;
-
     return {
-      clients: filteredClients,
+      clients,
       total: response.data.info.results,
     };
   } catch (error) {
