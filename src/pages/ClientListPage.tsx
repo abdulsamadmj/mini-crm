@@ -7,6 +7,7 @@ import {
   getSortedRowModel,
   SortingState,
   getFilteredRowModel,
+  Column,
 } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,6 +63,7 @@ const ClientListPage: React.FC = () => {
       accessorKey: "picture",
       header: "Avatar",
       enableSorting: false,
+      enableColumnFilter: false,
       cell: ({ row }) => (
         <Avatar>
           <AvatarImage
@@ -144,7 +146,7 @@ const ClientListPage: React.FC = () => {
       </div>
 
       {/* Client Table */}
-      <Table style={{height: "calc(100vh - 200px)"}}>
+      <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
@@ -169,6 +171,11 @@ const ClientListPage: React.FC = () => {
                           desc: " 🔽",
                         }[header.column.getIsSorted() as string] ?? null}
                       </div>
+                      {header.column.getCanFilter() ? (
+                        <div>
+                          <Filter column={header.column} />
+                        </div>
+                      ) : null}
                     </>
                   )}
                 </TableHead>
@@ -246,5 +253,54 @@ const ClientListPage: React.FC = () => {
     </div>
   );
 };
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function Filter({ column }: { column: Column<any, unknown> }) {
+  const columnFilterValue = column.getFilterValue();
+
+  return (
+    <DebouncedInput
+      type="text"
+      value={(columnFilterValue ?? "") as string}
+      onChange={(value) => column.setFilterValue(value)}
+      placeholder={`Search...`}
+      className="w-36 border shadow rounded"
+    />
+  );
+}
+
+// A typical debounced input react component
+function DebouncedInput({
+  value: initialValue,
+  onChange,
+  debounce = 500,
+  ...props
+}: {
+  value: string | number;
+  onChange: (value: string | number) => void;
+  debounce?: number;
+} & Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange">) {
+  const [value, setValue] = React.useState(initialValue);
+
+  React.useEffect(() => {
+    setValue(initialValue);
+  }, [initialValue]);
+
+  React.useEffect(() => {
+    const timeout = setTimeout(() => {
+      onChange(value);
+    }, debounce);
+
+    return () => clearTimeout(timeout);
+  }, [value]);
+
+  return (
+    <Input
+      {...props}
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+    />
+  );
+}
 
 export default ClientListPage;
